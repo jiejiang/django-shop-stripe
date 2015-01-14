@@ -26,6 +26,7 @@ class StripeBackend(object):
         urlpatterns = patterns(
             '',
             url(r'^$', self.stripe_payment_view, name='stripe'),
+            url(r'^(?P<pk>\d+)$', self.stripe_payment_view, name='stripe_order'),
             url(r'^success/$', self.stripe_return_successful_view,
                 name='stripe_success'),
         )
