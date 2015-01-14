@@ -6,7 +6,7 @@ from django.http import HttpResponseRedirect, HttpResponseBadRequest
 from django.shortcuts import render, redirect
 from .forms import CardForm
 import stripe
-
+from django.http import Http404
 
 class StripeBackend(object):
     """
@@ -25,8 +25,7 @@ class StripeBackend(object):
     def get_urls(self):
         urlpatterns = patterns(
             '',
-            url(r'^$', self.stripe_payment_view, name='stripe'),
-            url(r'^(?P<pk>\d+)$', self.stripe_payment_view, name='stripe_order'),
+            url(r'^(?P<pk>\d+)$', self.stripe_payment_view, name='stripe'),
             url(r'^success/$', self.stripe_return_successful_view,
                 name='stripe_success'),
         )
@@ -34,6 +33,13 @@ class StripeBackend(object):
 
     def stripe_payment_view(self, request, pk=None, template_name="shop_stripe/payment.html",
                             extra_context={}):
+        if pk is None:
+            raise Http404
+        order = self.shop.get_order_for_id(pk)
+        if order.user_id <> request.user.id or order.status <> BaseOrder.CONFIRMED::
+            raise Http404
+        order_id = pk
+        extra_context['order_object'] = order
         try:
             stripe.api_key = settings.SHOP_STRIPE_PRIVATE_KEY
             pub_key = settings.SHOP_STRIPE_PUBLISHABLE_KEY
@@ -50,12 +56,6 @@ class StripeBackend(object):
             except KeyError:
                 return HttpResponseBadRequest('stripeToken not set')
             currency = getattr(settings, 'SHOP_STRIPE_CURRENCY', 'usd')
-            if pk is None:
-                order = self.shop.get_order(request)
-                order_id = self.shop.get_order_unique_id(order)
-            else:
-                order = self.shop.get_order_for_id(pk)
-                order_id = pk
             amount = self.shop.get_order_total(order)
             amount = str(int(amount * 100))
             if request.user.is_authenticated():
