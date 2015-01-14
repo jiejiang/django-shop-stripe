@@ -81,7 +81,7 @@ class StripeBackend(object):
             'form': form,
             'error': error,
             'STRIPE_PUBLISHABLE_KEY': pub_key,
-            }, **extra_context)
+            }, **extra_context))
 
     def stripe_return_successful_view(self, request):
         return HttpResponseRedirect(self.shop.get_finished_url())
