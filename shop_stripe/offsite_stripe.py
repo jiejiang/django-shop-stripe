@@ -32,7 +32,7 @@ class StripeBackend(object):
         )
         return urlpatterns
 
-    def stripe_payment_view(self, request, template_name="shop_stripe/payment.html",
+    def stripe_payment_view(self, request, pk=None, template_name="shop_stripe/payment.html",
                             extra_context={}):
         try:
             stripe.api_key = settings.SHOP_STRIPE_PRIVATE_KEY
@@ -50,8 +50,12 @@ class StripeBackend(object):
             except KeyError:
                 return HttpResponseBadRequest('stripeToken not set')
             currency = getattr(settings, 'SHOP_STRIPE_CURRENCY', 'usd')
-            order = self.shop.get_order(request)
-            order_id = self.shop.get_order_unique_id(order)
+            if pk is None:
+                order = self.shop.get_order(request)
+                order_id = self.shop.get_order_unique_id(order)
+            else:
+                order = self.shop.get_order_for_id(pk)
+                order_id = pk
             amount = self.shop.get_order_total(order)
             amount = str(int(amount * 100))
             if request.user.is_authenticated():
