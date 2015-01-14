@@ -7,6 +7,7 @@ from django.shortcuts import render, redirect
 from .forms import CardForm
 import stripe
 from django.http import Http404
+from shop.models_bases import BaseOrder
 
 class StripeBackend(object):
     """
@@ -36,7 +37,7 @@ class StripeBackend(object):
         if pk is None:
             raise Http404
         order = self.shop.get_order_for_id(pk)
-        if order.user_id <> request.user.id or order.status <> BaseOrder.CONFIRMED::
+        if order.user_id <> request.user.id or order.status <> BaseOrder.CONFIRMED:
             raise Http404
         order_id = pk
         extra_context['order_object'] = order
