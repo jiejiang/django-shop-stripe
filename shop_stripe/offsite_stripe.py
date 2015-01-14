@@ -31,7 +31,8 @@ class StripeBackend(object):
         )
         return urlpatterns
 
-    def stripe_payment_view(self, request):
+    def stripe_payment_view(self, request, template_name="shop_stripe/payment.html",
+                            extra_context={}):
         try:
             stripe.api_key = settings.SHOP_STRIPE_PRIVATE_KEY
             pub_key = settings.SHOP_STRIPE_PUBLISHABLE_KEY
@@ -76,11 +77,11 @@ class StripeBackend(object):
                 return redirect(self.shop.get_finished_url())
         else:
             form = CardForm()
-        return render(request, "shop_stripe/payment.html", {
+        return render(request, template_name, dict({
             'form': form,
             'error': error,
             'STRIPE_PUBLISHABLE_KEY': pub_key,
-        })
+            }, **extra_context})
 
     def stripe_return_successful_view(self, request):
         return HttpResponseRedirect(self.shop.get_finished_url())
