@@ -54,21 +54,23 @@ class StripeBackend(object):
             form = CardForm(request.POST)
             try:
                 card_token = request.POST['stripeToken']
+                stripe_email = request.POST['stripeEmail']
             except KeyError:
                 return HttpResponseBadRequest('stripeToken not set')
-            currency = getattr(settings, 'SHOP_STRIPE_CURRENCY', 'usd')
+            currency = getattr(settings, 'SHOP_STRIPE_CURRENCY', 'GBP')
             amount = self.shop.get_order_total(order)
             amount = str(int(amount * 100))
             if request.user.is_authenticated():
-                description = request.user.email
+                user_info = 'User[%s] Email[%s]' % (request.user.id, request.user.email)
             else:
-                description = 'guest customer'
+                user_info = 'GuestCustomer'
             stripe_dict = {
                 'amount': amount,
                 'currency': currency,
                 'card': card_token,
                 'description': description,
             }
+            description = '%s stripeEmail[%s] Order[%s] Amount[%s] Currenty[%s]' % (user_info, stripe_email, order_id, amount, currency)
             try:
                 stripe_result = stripe.Charge.create(**stripe_dict)
             except stripe.CardError as e:
