@@ -64,13 +64,13 @@ class StripeBackend(object):
                 user_info = 'User[%s] Email[%s]' % (request.user.id, request.user.email)
             else:
                 user_info = 'GuestCustomer'
+            description = '%s stripeEmail[%s] Order[%s] Amount[%s] Currenty[%s]' % (user_info, stripe_email, order_id, amount, currency)
             stripe_dict = {
                 'amount': amount,
                 'currency': currency,
                 'card': card_token,
                 'description': description,
             }
-            description = '%s stripeEmail[%s] Order[%s] Amount[%s] Currenty[%s]' % (user_info, stripe_email, order_id, amount, currency)
             try:
                 stripe_result = stripe.Charge.create(**stripe_dict)
             except stripe.CardError as e:
